@@ -13,6 +13,8 @@ import sklearn.metrics
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
 from sklearn.model_selection import cross_val_score
+# from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import KFold
 
 #################
 # colour scheme #
@@ -45,6 +47,7 @@ df = dat_tab.to_pandas()
 # idx = range(0, 5107)
 # df.insert(0,'idx', idx)
 # df.set_index('idx')
+print(df)
 
 sample_size = len(df)
 
@@ -117,7 +120,44 @@ print('------------------------------')
 # print('Mean cross_val_score R^2 Test: %0.5f' % cvs_r2_test)
 # print('------------------------------')
 
-# residuals plots
+## kfold cv for r2 scores
+kf = KFold(n_splits = 10, random_state = rand, shuffle = True)
+# skf = StratifiedKFold(n_splits = 10)
+
+r2s_train = []
+r2s_test = []
+adj_r2s_train = []
+adj_r2s_test = []
+train_test = []
+test_test = []
+for train_index, test_index in kf.split(X):
+
+    print(type(train_index))
+
+    X_train, X_test = X[train_index], X[test_index]
+    y_train, y_test = y[train_index], y[test_index]
+
+    lr.fit(X_train, y_train)
+
+    y_train_pred = lr.predict(X[train_index])
+    y_test_pred = lr.predict(X[test_index])
+
+    # performance metrics
+    mse_train, r2_train, adj_r2_train = reg_metrics(y_train, y_train_pred)
+    mse_test, r2_test, adj_r2_test = reg_metrics(y_test, y_test_pred)
+
+    r2s_train.append(r2_train)
+    r2s_test.append(r2_test)
+    adj_r2s_train.append(adj_r2_train)
+    adj_r2s_test.append(adj_r2_test)
+
+    train_test.append(reg_metrics(y_train, y_train_pred))
+    test_test.append(reg_metrics(y_test, y_test_pred))
+
+r2s_mean_train = np.mean(np.array(r2s_train))
+
+
+#region residuals plots
 # with outliers
 plt.figure()
 plt.hlines(y = 0, xmin = -500, xmax = 8000, color = gry)
@@ -140,7 +180,7 @@ plt.xlabel('Predicted values')
 plt.ylabel('Residuals')
 plt.legend()
 # plt.savefig('./plots/lin_regress/resid.pdf')
-
+#endregion
 
 
 # plt.show()
