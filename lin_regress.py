@@ -40,8 +40,15 @@ def adj_r2(r2):
     return adj
 
 def metric_means(estimator, X, y):
+
+    ## kfold cv for r2 scores
+    kf = KFold(n_splits = 10, random_state = rand, shuffle = True)
+    # skf = StratifiedKFold(n_splits = 10)
+
     means_train = []
     means_test = []
+    reses_train = []
+    reses_test = []
     for train_index, test_index in kf.split(X):
 
         X_train, X_test = X[train_index], X[test_index]
@@ -50,6 +57,7 @@ def metric_means(estimator, X, y):
         estimator.fit(X_train, y_train)
 
         y_train_pred = lr.predict(X[train_index])
+        print(len(y_train_pred))
         y_test_pred = lr.predict(X[test_index])
 
         # performance metrics
@@ -59,14 +67,27 @@ def metric_means(estimator, X, y):
         means_train.append(reg_metrics(y_train, y_train_pred))
         means_test.append(reg_metrics(y_test, y_test_pred))
 
-    mses_mean_train = np.mean(means_train, axis = 0)[1]
+        # residuals
+        res_train = y_train_pred - y_train
+        res_test = y_test_pred - y_test
+
+        reses_train.append(res_train)
+        reses_test.append(res_test)
+
+    # mean metrics
+    mses_mean_train = np.mean(means_train, axis = 0)[0]
     r2s_mean_train = np.mean(means_train, axis = 0)[1]
     adj_r2s_mean_train = np.mean(means_train, axis = 0)[2]
 
-    mses_mean_test = np.mean(means_test, axis = 0)[1]
+    mses_mean_test = np.mean(means_test, axis = 0)[0]
     r2s_mean_test = np.mean(means_test, axis = 0)[1]
     adj_r2s_mean_test = np.mean(means_test, axis = 0)[2]
 
+    # mean residuals
+    # res_means_train = np.mean(reses_train, axis = 0)
+    # res_means_test = np.mean(reses_test, axis = 0)
+
+    # print metrics
     print('----------------------------------------------')
     print('Mean R^2 Train: %0.5f' % r2s_mean_train)
     print('Mean R^2 Test: %0.5f' % r2s_mean_test)
@@ -75,6 +96,8 @@ def metric_means(estimator, X, y):
     print('Mean Adj R^2 Train: %0.5f' % adj_r2s_mean_train)
     print('Mean Adj R^2 Test: %0.5f' % adj_r2s_mean_test)
     print('----------------------------------------------')
+
+    return 
 
 filename = "data_for_ML.fits" # this file has been reduced based on the criteria in Section 2.1
 
@@ -119,50 +142,12 @@ lr = LinearRegression()
 # plt.legend()
 #endregion
 
-# lr.fit(X_train, y_train)
-
-# y_train_pred = lr.predict(X_train)
-# y_test_pred = lr.predict(X_test)
-
-# # performance metrics
-# mse_train, r2_train, adj_r2_train = reg_metrics(y_train, y_train_pred)
-# mse_test, r2_test, adj_r2_test = reg_metrics(y_test, y_test_pred)
-# cvs_r2 = np.mean(cross_val_score(lr, X, y, cv = 10, scoring = 'r2'))
-# # not sure this works because it will fit different models to the test and train
-# # cvs_r2_train = np.mean(cross_val_score(lr, X_train, y_train, cv = 10, scoring = 'r2'))
-# # cvs_r2_test = np.mean(cross_val_score(lr, X_test, y_test, cv = 10, scoring = 'r2'))
-
-# # print('------------------------------')
-# # print('MSE Train: %0.3f' % mse_train)
-# # print('MSE Test: %0.3f' % mse_test)
-# # print('------------------------------')
-
-# print('----------------------------------------------')
-# print('R^2 Train: %0.5f' % r2_train)
-# print('R^2 Test: %0.5f' % r2_test)
-# print('----------------------------------------------')
-
-# print('----------------------------------------------')
-# print('Adjusted R^2 Train: %0.5f' % adj_r2_train)
-# print('Adjusted R^2 Test: %0.5f' % adj_r2_test)
-# print('----------------------------------------------')
-
-# print('----------------------------------------------')
-# print('Mean cross_val_score R^2 Train: %0.5f' % cvs_r2)
-# print('----------------------------------------------')
-
-# print('------------------------------')
-# print('Mean cross_val_score R^2 Train: %0.5f' % cvs_r2_train)
-# print('Mean cross_val_score R^2 Test: %0.5f' % cvs_r2_test)
-# print('------------------------------')
-
-## kfold cv for r2 scores
-kf = KFold(n_splits = 10, random_state = rand, shuffle = True)
-# skf = StratifiedKFold(n_splits = 10)
-
-
-
 metric_means(lr, X, y)
+
+lr.fit(X_train, y_train)
+
+y_train_pred = lr.predict(X_train)
+y_test_pred = lr.predict(X_test)
 
 #region residuals plots
 # with outliers
