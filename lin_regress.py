@@ -78,12 +78,12 @@ lr = LinearRegression()
 # plt.legend()
 #endregion
 
-
 lr.fit(X_train, y_train)
 
 y_train_pred = lr.predict(X_train)
 y_test_pred = lr.predict(X_test)
 
+# performance metrics
 mse_train, r2_train, adj_r2_train = reg_metrics(y_train, y_train_pred)
 mse_test, r2_test, adj_r2_test = reg_metrics(y_test, y_test_pred)
 
@@ -93,13 +93,37 @@ print('MSE Test: %0.3f' % mse_test)
 print('------------------------------')
 
 print('------------------------------')
-print('R^2 Train: %0.13f' % r2_train)
-print('R^2 Test: %0.13f' % r2_test)
+print('R^2 Train: %0.5f' % r2_train)
+print('R^2 Test: %0.5f' % r2_test)
 print('------------------------------')
 
 print('------------------------------')
-print('Adjusted R^2 Train: %0.13f' % adj_r2_train)
-print('Adjusted R^2 Test: %0.13f' % adj_r2_test)
+print('Adjusted R^2 Train: %0.5f' % adj_r2_train)
+print('Adjusted R^2 Test: %0.5f' % adj_r2_test)
 print('------------------------------')
 
-plt.show()
+# residuals plots
+# with outliers
+plt.figure()
+plt.hlines(y = 0, xmin = -500, xmax = 8000, color = gry)
+plt.scatter(y_train_pred, y_train_pred - y_train, color = yel, alpha = 0.5, label = 'Train', s = 9)
+plt.scatter(y_test_pred, y_test_pred - y_test, color = prp, alpha = 0.5, label = 'Test', s = 7, marker = 's')
+plt.xlim(-500, 7500)
+plt.xlabel('Predicted values')
+plt.ylabel('Residuals')
+plt.legend()
+plt.savefig('./plots/lin_regress/resid_outliers.pdf')
+
+# without (some) outliers
+plt.figure()
+plt.hlines(y = 0, xmin = -500, xmax = 2100, color = gry)
+plt.scatter(y_train_pred, y_train_pred - y_train, color = yel, alpha = 0.5, label = 'Train', s = 9)
+plt.scatter(y_test_pred, y_test_pred - y_test, color = prp, alpha = 0.5, label = 'Test', s = 7, marker = 's')
+plt.xlim(-15, 399)
+plt.ylim(-480,225)
+plt.xlabel('Predicted values')
+plt.ylabel('Residuals')
+plt.legend()
+plt.savefig('./plots/lin_regress/resid.pdf')
+
+# plt.show()
