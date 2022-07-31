@@ -8,8 +8,11 @@ import astropy.cosmology as cosmo
 from astropy.io import fits
 from astropy.table import Table
 from mlxtend.plotting import scatterplotmatrix
+from mlxtend.plotting import heatmap
 import seaborn as sns
 from sklearn.impute import SimpleImputer
+from matplotlib import cm
+from matplotlib.colors import LinearSegmentedColormap
 
 pd.set_option('display.max_columns', None)
 
@@ -34,6 +37,10 @@ ong = '#DE8551'
 gry = '#8D8D8D'
 yel = '#CDBA75'
 prp = '#8273B4'
+
+# cdict = {}
+
+e_cmap = LinearSegmentedColormap.from_list('', [blu, ong])
 
 #####################################
 ############# FUNCTIONS #############
@@ -188,6 +195,11 @@ pp_axes[7,6].set_ylim(-3,4)
 plt.tight_layout()
 plt.legend()
 
-plt.savefig('pairplot.pdf')
+plt.savefig('./plots/eda/pairplot.pdf')
+
+corr_matrix = np.corrcoef(df[features].values.T)
+hm = heatmap(corr_matrix, row_names = features, column_names = features, figsize = (9,9), cmap = e_cmap)
+
+plt.savefig('./plots/eda/corr_matrix.pdf')
 
 # plt.show()
