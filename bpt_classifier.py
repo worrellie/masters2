@@ -11,12 +11,12 @@ from astropy.table import Table
 #################
 # colour scheme #
 #################
-grn ='#54AA68'
-blu = '#4B73B2'
-ong = '#DE8551'
+grn ='#54AA68' # comp
+blu = '#4B73B2' # sfg
+ong = '#DE8551' # agn
 gry = '#8D8D8D'
-yel = '#CDBA75'
-prp = '#8273B4'
+yel = '#CDBA75' # train
+prp = '#8273B4' # test
 
 filename = "data_for_BPT_classification.fits" # this file has been reduced based on the criteria in Section 2.1
 
