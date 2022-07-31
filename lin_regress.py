@@ -57,7 +57,6 @@ def metric_means(estimator, X, y):
         estimator.fit(X_train, y_train)
 
         y_train_pred = lr.predict(X[train_index])
-        print(len(y_train_pred))
         y_test_pred = lr.predict(X[test_index])
 
         # performance metrics
@@ -67,14 +66,8 @@ def metric_means(estimator, X, y):
         means_train.append(reg_metrics(y_train, y_train_pred))
         means_test.append(reg_metrics(y_test, y_test_pred))
 
-        # residuals
-        res_train = y_train_pred - y_train
-        res_test = y_test_pred - y_test
 
-        reses_train.append(res_train)
-        reses_test.append(res_test)
-
-    # mean metrics
+    # mean metrics- do a WEIGHTED mean
     mses_mean_train = np.mean(means_train, axis = 0)[0]
     r2s_mean_train = np.mean(means_train, axis = 0)[1]
     adj_r2s_mean_train = np.mean(means_train, axis = 0)[2]
@@ -117,7 +110,8 @@ target = df['n2']
 X = features.values
 y = target.values
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = rand)
+# maybe do for different splits do see, but it is not meaningful to do a mean
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = rand) 
 
 lr = LinearRegression()
 
