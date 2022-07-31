@@ -25,6 +25,12 @@ prp = '#8273B4' # test
 # random state (for consistency)
 rand = 4
 
+def reg_metrics(y, y_pred):
+    mse = mean_squared_error(y, y_pred)
+    r2 = r2_score(y, y_pred)
+    adj = adj_r2(r2)
+    return mse, r2, adj
+
 def adj_r2(r2):
     adj = 1 - (1 - r2)*((sample_size - 1)/(sample_size - n_features))
     return adj
@@ -78,24 +84,18 @@ lr.fit(X_train, y_train)
 y_train_pred = lr.predict(X_train)
 y_test_pred = lr.predict(X_test)
 
-mse_train = mean_squared_error(y_train, y_train_pred)
-mse_test = mean_squared_error(y_test, y_test_pred)
+mse_train, r2_train, adj_r2_train = reg_metrics(y_train, y_train_pred)
+mse_test, r2_test, adj_r2_test = reg_metrics(y_test, y_test_pred)
 
 print('------------------------------')
 print('MSE Train: %0.3f' % mse_train)
 print('MSE Test: %0.3f' % mse_test)
 print('------------------------------')
 
-r2_train = r2_score(y_train, y_train_pred)
-r2_test = r2_score(y_test, y_test_pred)
-
 print('------------------------------')
 print('R^2 Train: %0.13f' % r2_train)
 print('R^2 Test: %0.13f' % r2_test)
 print('------------------------------')
-
-adj_r2_train = adj_r2(r2_train)
-adj_r2_test = adj_r2(r2_test)
 
 print('------------------------------')
 print('Adjusted R^2 Train: %0.13f' % adj_r2_train)
