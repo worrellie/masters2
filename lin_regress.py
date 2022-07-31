@@ -6,24 +6,100 @@ import astropy.cosmology as cosmo
 from astropy.io import fits
 from astropy.table import Table
 from mlxtend.plotting import scatterplotmatrix
-from sklearn import linear_regression
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import learning_curve
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
 
 #################
 # colour scheme #
 #################
-grn ='#54AA68'
-blu = '#4B73B2'
-ong = '#DE8551'
+grn ='#54AA68' # comp
+blu = '#4B73B2' # sfg
+ong = '#DE8551' # agn
 gry = '#8D8D8D'
-yel = '#CDBA75'
-prp = '#8273B4'
+yel = '#CDBA75' # train
+prp = '#8273B4' # test
 
-filename = "zhang_cut.fits" # this file has been reduced based on the criteria in Section 2.1
+# random state (for consistency)
+rand = 4
+
+def adj_r2(r2):
+    adj = 1 - (1 - r2)*((sample_size - 1)/(sample_size - n_features))
+    return adj
+
+filename = "data_for_ML.fits" # this file has been reduced based on the criteria in Section 2.1
 
 dat_tab = Table.read(filename, format = 'fits')
 
-data = dat_tab.to_pandas()
+df = dat_tab.to_pandas()
 # idx = range(0, 5107)
-# data.insert(0,'idx', idx)
-# data.set_index('idx')
+# df.insert(0,'idx', idx)
+# df.set_index('idx')
 
+sample_size = len(df)
+
+features = df[['o3','ha','hb']]
+n_features = len(features.columns)
+target = df['n2']
+
+X = features
+y = target.values
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = rand)
+
+lr = LinearRegression()
+
+#region : learning curve
+# # learning curve
+# train_sizes, train_scores, test_scores = learning_curve(lr, X, y, train_sizes =  np.linspace(0.1, 1, 10), cv = 10)
+# train_mean = np.mean(train_scores, axis = 1)
+# train_std = np.std(train_scores, axis = 1)
+# test_mean = np.mean(test_scores, axis = 1)
+# test_std = np.std(test_scores, axis = 1)
+
+# # plot
+# plt.plot(train_sizes, train_mean, color = yel, marker = 'o', label = 'Train')
+# plt.fill_between(train_sizes, train_mean + train_std, train_mean - train_std, alpha = 0.5, color = yel)
+
+# plt.plot(train_sizes, test_mean, color = prp, marker = 's', label = 'Test')
+# plt.fill_between(train_sizes, test_mean + test_std, test_mean - test_std, alpha = 0.5, color = prp)
+
+# plt.xlabel('Training Size')
+# plt.ylabel('Accuracy')
+
+# plt.legend()
+#endregion
+
+
+lr.fit(X_train, y_train)
+
+y_train_pred = lr.predict(X_train)
+y_test_pred = lr.predict(X_test)
+
+mse_train = mean_squared_error(y_train, y_train_pred)
+mse_test = mean_squared_error(y_test, y_test_pred)
+
+print('------------------------------')
+print('MSE Train: %0.3f' % mse_train)
+print('MSE Test: %0.3f' % mse_test)
+print('------------------------------')
+
+r2_train = r2_score(y_train, y_train_pred)
+r2_test = r2_score(y_test, y_test_pred)
+
+print('------------------------------')
+print('R^2 Train: %0.13f' % r2_train)
+print('R^2 Test: %0.13f' % r2_test)
+print('------------------------------')
+
+adj_r2_train = adj_r2(r2_train)
+adj_r2_test = adj_r2(r2_test)
+
+print('------------------------------')
+print('Adjusted R^2 Train: %0.13f' % adj_r2_train)
+print('Adjusted R^2 Test: %0.13f' % adj_r2_test)
+print('------------------------------')
+
+plt.show()
