@@ -74,7 +74,7 @@ def isnegative(df):
     print('----------------------------------------')
     return indices
 
-filename = "data_for_ML.fits" # this file has been reduced based on the criteria in Section 2.1
+filename = "data_for_eda.fits" # this file has been reduced based on the criteria in Section 2.1
 
 dat_tab = Table.read(filename, format = 'fits')
 
@@ -98,7 +98,6 @@ missing = iszero(df)
 n_missing = len(missing)
 # remove rows with missing data (in this case it's only colour data)
 df.drop(missing, axis=0, inplace=True)
-
 # decided not to impute missing values because std is large
 # imp = SimpleImputer(missing_values = np.nan, strategy = 'mean')
 
@@ -195,11 +194,16 @@ pp_axes[7,6].set_ylim(-3,4)
 plt.tight_layout()
 plt.legend()
 
-plt.savefig('./plots/eda/pairplot.pdf')
+# plt.savefig('./plots/eda/pairplot.pdf')
 
 corr_matrix = np.corrcoef(df[features].values.T)
 hm = heatmap(corr_matrix, row_names = features, column_names = features, figsize = (9,9), cmap = e_cmap)
 
-plt.savefig('./plots/eda/corr_matrix.pdf')
+# plt.savefig('./plots/eda/corr_matrix.pdf')
 
 # plt.show()
+
+df.insert(0, 'class', classes)
+
+t = Table.from_pandas(df)
+t.write('data_for_ML.fits')
