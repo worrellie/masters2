@@ -11,6 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import learning_curve
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import r2_score
+from sklearn.model_selection import cross_val_score
 
 #################
 # colour scheme #
@@ -86,11 +87,12 @@ y_test_pred = lr.predict(X_test)
 # performance metrics
 mse_train, r2_train, adj_r2_train = reg_metrics(y_train, y_train_pred)
 mse_test, r2_test, adj_r2_test = reg_metrics(y_test, y_test_pred)
+cvs = np.mean(cross_val_score(lr, X, y, cv = 10))
 
-print('------------------------------')
-print('MSE Train: %0.3f' % mse_train)
-print('MSE Test: %0.3f' % mse_test)
-print('------------------------------')
+# print('------------------------------')
+# print('MSE Train: %0.3f' % mse_train)
+# print('MSE Test: %0.3f' % mse_test)
+# print('------------------------------')
 
 print('------------------------------')
 print('R^2 Train: %0.5f' % r2_train)
@@ -100,6 +102,10 @@ print('------------------------------')
 print('------------------------------')
 print('Adjusted R^2 Train: %0.5f' % adj_r2_train)
 print('Adjusted R^2 Test: %0.5f' % adj_r2_test)
+print('------------------------------')
+
+print('------------------------------')
+print('Mean cross_val_score: %0.5f' % cvs)
 print('------------------------------')
 
 # residuals plots
@@ -112,7 +118,7 @@ plt.xlim(-500, 7500)
 plt.xlabel('Predicted values')
 plt.ylabel('Residuals')
 plt.legend()
-plt.savefig('./plots/lin_regress/resid_outliers.pdf')
+# plt.savefig('./plots/lin_regress/resid_outliers.pdf')
 
 # without (some) outliers
 plt.figure()
@@ -124,6 +130,8 @@ plt.ylim(-480,225)
 plt.xlabel('Predicted values')
 plt.ylabel('Residuals')
 plt.legend()
-plt.savefig('./plots/lin_regress/resid.pdf')
+# plt.savefig('./plots/lin_regress/resid.pdf')
+
+
 
 # plt.show()
