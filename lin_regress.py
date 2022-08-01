@@ -80,18 +80,18 @@ def metric_means(estimator, X, y):
 
     # print metrics
     print('----------------------------------------------')
+    print('METRICS')
+    print('----------------------------------------------')
     print('Mean R^2 Train: %0.5f' % r2s_mean_train)
     print('Mean R^2 Test: %0.5f' % r2s_mean_test)
-    print('----------------------------------------------')
     print('----------------------------------------------')
     print('Mean Adj R^2 Train: %0.5f' % adj_r2s_mean_train)
     print('Mean Adj R^2 Test: %0.5f' % adj_r2s_mean_test)
     print('----------------------------------------------')
-    print('----------------------------------------------')
     print('RMSE Train: %0.5f' % rmses_mean_train)
     print('RMSE Test: %0.5f' % rmses_mean_test)
     print('----------------------------------------------')
-    
+
     return 
 
 filename = "data_for_ML.fits" # this file has been reduced based on the criteria in Section 2.1
@@ -109,7 +109,7 @@ pl = make_pipeline(sc, lr)
 
 sample_size = len(df)
 
-features = df[['o3','ha','hb']]
+features = df[['o3', 'ha', 'hb', 'u_g', 'g_r', 'r_i', 'i_z']]
 n_features = len(features.columns)
 target = df['n2']
 
@@ -140,7 +140,13 @@ y = target.values
 # get cross validated metrics
 metric_means(pl, X, y)
 
-#region residuals plots
+mean_cvs = np.mean(cross_val_score(pl, X, y, cv = 10))
+
+print('----------------------------------------------')
+print('MEAN CROSS VAL SCORE: %0.5f' % mean_cvs)
+print('----------------------------------------------')
+
+#region residuals
 
 # maybe do for different splits do see, but it is not meaningful to do a mean
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = rand)
@@ -150,13 +156,28 @@ pl.fit(X_train, y_train)
 y_train_pred = pl.predict(X_train)
 y_test_pred = pl.predict(X_test)
 
+res_train = y_train_pred - y_train
+res_test = y_test_pred - y_test
+
+# print(sum(np.square(res_train))) variance ???
+
+print('----------------------------------------------')
+print('RESIDUALS')
+print('----------------------------------------------')
+print('Residuals Mean Train: %0.5f' % np.mean(res_train))
+print('Residuals Mean Test: %0.5f' % np.mean(res_test))
+print('----------------------------------------------')
+print('Residuals Std Train: %0.5f (%0.5f)' % (np.std(res_train), np.std(res_train)/max(res_train)))
+print('Residuals Std Test: %0.5f (%0.5f)' % (np.std(res_test), np.std(res_test)/max(res_test)))
+print('----------------------------------------------')
+
 # with outliers
 plt.figure()
 plt.hlines(y = 0, xmin = -500, xmax = 8000, color = gry)
 plt.scatter(y_train_pred, y_train_pred - y_train, color = yel, alpha = 0.5, label = 'Train', s = 9)
 plt.scatter(y_test_pred, y_test_pred - y_test, color = prp, alpha = 0.5, label = 'Test', s = 7, marker = 's')
 plt.xlim(-500, 7500)
-plt.xlabel('Predicted values')
+plt.xlabel('Predicted Values')
 plt.ylabel('Residuals')
 plt.legend()
 # plt.savefig('./plots/lin_regress/resid_outliers.pdf')
@@ -168,7 +189,7 @@ plt.scatter(y_train_pred, y_train_pred - y_train, color = yel, alpha = 0.5, labe
 plt.scatter(y_test_pred, y_test_pred - y_test, color = prp, alpha = 0.5, label = 'Test', s = 7, marker = 's')
 plt.xlim(-15, 399)
 plt.ylim(-480,225)
-plt.xlabel('Predicted values')
+plt.xlabel('Predicted Values')
 plt.ylabel('Residuals')
 plt.legend()
 # plt.savefig('./plots/lin_regress/resid.pdf')
