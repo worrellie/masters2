@@ -15,6 +15,8 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import cross_val_score
 # from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import KFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
 
 #################
 # colour scheme #
@@ -76,10 +78,6 @@ def metric_means(estimator, X, y):
     r2s_mean_test = np.mean(means_test, axis = 0)[1]
     adj_r2s_mean_test = np.mean(means_test, axis = 0)[2]
 
-    # mean residuals
-    # res_means_train = np.mean(reses_train, axis = 0)
-    # res_means_test = np.mean(reses_test, axis = 0)
-
     # print metrics
     print('----------------------------------------------')
     print('Mean R^2 Train: %0.5f' % r2s_mean_train)
@@ -101,6 +99,10 @@ df = dat_tab.to_pandas()
 # df.insert(0,'idx', idx)
 # df.set_index('idx')
 
+lr = LinearRegression()
+sc = StandardScaler()
+# pl = Pips
+
 sample_size = len(df)
 
 features = df[['o3','ha','hb']]
@@ -111,9 +113,10 @@ X = features.values
 y = target.values
 
 # maybe do for different splits do see, but it is not meaningful to do a mean
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = rand) 
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = rand)
 
-lr = LinearRegression()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
 
 #region : learning curve
 # # learning curve
