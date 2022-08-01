@@ -16,7 +16,7 @@ from sklearn.model_selection import cross_val_score
 # from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import make_pipeline
 
 #################
 # colour scheme #
@@ -58,8 +58,8 @@ def metric_means(estimator, X, y):
 
         estimator.fit(X_train, y_train)
 
-        y_train_pred = lr.predict(X[train_index])
-        y_test_pred = lr.predict(X[test_index])
+        y_train_pred = estimator.predict(X[train_index])
+        y_test_pred = estimator.predict(X[test_index])
 
         # performance metrics
         mse_train, r2_train, adj_r2_train = reg_metrics(y_train, y_train_pred)
@@ -67,7 +67,6 @@ def metric_means(estimator, X, y):
 
         means_train.append(reg_metrics(y_train, y_train_pred))
         means_test.append(reg_metrics(y_test, y_test_pred))
-
 
     # mean metrics- do a WEIGHTED mean
     mses_mean_train = np.mean(means_train, axis = 0)[0]
@@ -101,7 +100,7 @@ df = dat_tab.to_pandas()
 
 lr = LinearRegression()
 sc = StandardScaler()
-# pl = Pips
+pl = make_pipeline(sc, lr)
 
 sample_size = len(df)
 
@@ -115,8 +114,8 @@ y = target.values
 # maybe do for different splits do see, but it is not meaningful to do a mean
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = rand)
 
-X_train = sc.fit_transform(X_train)
-X_test = sc.transform(X_test)
+# X_train = sc.fit_transform(X_train)
+# X_test = sc.transform(X_test)
 
 #region : learning curve
 # # learning curve
@@ -139,12 +138,12 @@ X_test = sc.transform(X_test)
 # plt.legend()
 #endregion
 
-metric_means(lr, X, y)
+metric_means(pl, X, y)
 
-lr.fit(X_train, y_train)
+pl.fit(X_train, y_train)
 
-y_train_pred = lr.predict(X_train)
-y_test_pred = lr.predict(X_test)
+y_train_pred = pl.predict(X_train)
+y_test_pred = pl.predict(X_test)
 
 #region residuals plots
 # with outliers
@@ -172,4 +171,5 @@ plt.legend()
 #endregion
 
 
-# plt.show()
+
+plt.show()
