@@ -32,10 +32,11 @@ prp = '#8273B4' # test
 rand = 4
 
 def reg_metrics(y, y_pred, weight=1):
-    mse = mean_squared_error(y, y_pred)*weight
+    mse = mean_squared_error(y, y_pred)*weight # root mean squared error
+    rmse = mean_squared_error(y, y_pred, squared = False)*weight
     r2 = r2_score(y, y_pred)*weight
     adj = adj_r2(r2)
-    return mse, r2, adj
+    return mse, rmse, r2, adj
 
 def adj_r2(r2):
     adj = 1 - (1 - r2)*((sample_size - 1)/(sample_size - n_features))
@@ -49,8 +50,6 @@ def metric_means(estimator, X, y):
 
     means_train = []
     means_test = []
-    reses_train = []
-    reses_test = []
     for train_index, test_index in kf.split(X):
 
         X_train, X_test = X[train_index], X[test_index]
@@ -70,23 +69,14 @@ def metric_means(estimator, X, y):
 
     # weighted mean metrics
     mses_mean_train = np.mean(means_train, axis = 0)[0]/total_w
-    r2s_mean_train = np.mean(means_train, axis = 0)[1]/total_w
-    adj_r2s_mean_train = np.mean(means_train, axis = 0)[2]/total_w
+    rmses_mean_train =  np.mean(means_train, axis = 0)[1]/total_w
+    r2s_mean_train = np.mean(means_train, axis = 0)[2]/total_w
+    adj_r2s_mean_train = np.mean(means_train, axis = 0)[3]/total_w
 
     mses_mean_test = np.mean(means_test, axis = 0)[0]/total_w
-    r2s_mean_test = np.mean(means_test, axis = 0)[1]/total_w
-    adj_r2s_mean_test = np.mean(means_test, axis = 0)[2]/total_w
-
-    # print(len(means_train))
-    # print(len(X_train))
-
-    # mses_mean_train = np.average(means_train, axis = 0, weights = len(X_train))[0]
-    # r2s_mean_train = np.average(means_train, axis = 0)[1]
-    # adj_r2s_mean_train = np.average(means_train, axis = 0)[2]
-
-    # mses_mean_test = np.average(means_test, axis = 0)[0]
-    # r2s_mean_test = np.average(means_test, axis = 0)[1]
-    # adj_r2s_mean_test = np.average(means_test, axis = 0)[2]
+    rmses_mean_test =  np.mean(means_test, axis = 0)[1]/total_w
+    r2s_mean_test = np.mean(means_test, axis = 0)[2]/total_w
+    adj_r2s_mean_test = np.mean(means_test, axis = 0)[3]/total_w
 
     # print metrics
     print('----------------------------------------------')
@@ -97,7 +87,11 @@ def metric_means(estimator, X, y):
     print('Mean Adj R^2 Train: %0.5f' % adj_r2s_mean_train)
     print('Mean Adj R^2 Test: %0.5f' % adj_r2s_mean_test)
     print('----------------------------------------------')
-
+    print('----------------------------------------------')
+    print('RMSE Train: %0.5f' % rmses_mean_train)
+    print('RMSE Test: %0.5f' % rmses_mean_test)
+    print('----------------------------------------------')
+    
     return 
 
 filename = "data_for_ML.fits" # this file has been reduced based on the criteria in Section 2.1
