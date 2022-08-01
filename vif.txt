@@ -1,0 +1,13 @@
+\begin{tabular}{llr}
+\toprule
+{} & Feature &        VIF \\
+\midrule
+0 &      o3 &   2.431733 \\
+1 &      hb &  16.817922 \\
+2 &      ha &  12.799469 \\
+3 &     u\_g &   2.749725 \\
+4 &     g\_r &   2.360051 \\
+5 &     r\_i &   2.158926 \\
+6 &     i\_z &   1.161777 \\
+\bottomrule
+\end{tabular}
