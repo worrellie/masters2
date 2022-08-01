@@ -17,6 +17,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
+from sklearn.inspection import permutation_importance
 
 #################
 # colour scheme #
@@ -42,8 +43,8 @@ def adj_r2(r2):
     adj = 1 - (1 - r2)*((sample_size - 1)/(sample_size - n_features))
     return adj
 
-def metric_means(estimator, X, y):
-    
+def metric_means(estimator, X):
+        
     ## kfold cv for r2 scores
     kf = KFold(n_splits = 10, random_state = rand, shuffle = True)
     # skf = StratifiedKFold(n_splits = 10)
@@ -55,7 +56,7 @@ def metric_means(estimator, X, y):
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
 
-        estimator.fit(X_train, y_train)
+        model = estimator.fit(X_train, y_train)
 
         y_train_pred = estimator.predict(X[train_index])
         y_test_pred = estimator.predict(X[test_index])
@@ -94,6 +95,23 @@ def metric_means(estimator, X, y):
 
     return 
 
+def perm_imp(X, y):
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = rand)
+
+    model = pl.fit(X_train, y_train)
+
+    # low cvs threfore apply permutation importance
+    p_imp = permutation_importance(model, X_test, y_test, n_repeats = 30, random_state = rand, scoring = 'r2')
+    sorted_idx = p_imp.importances_mean.argsort()
+    # print(p_imp)
+    for i in sorted_idx[::-1]:
+        if p_imp.importances_mean[i] - 2 * p_imp.importances_std[i] > 0:
+            print(f'{features.columns[i]:<8}' f'{p_imp.importances_mean[i]:.5f}' f' +/- {p_imp.importances_std[i]:.3f}')
+
+    # plt.boxplot(p_imp.importances[])
+
+
 filename = "data_for_ML.fits" # this file has been reduced based on the criteria in Section 2.1
 
 dat_tab = Table.read(filename, format = 'fits')
@@ -116,42 +134,24 @@ target = df['n2']
 X = features.values
 y = target.values
 
-#region : learning curve
-# # learning curve
-# train_sizes, train_scores, test_scores = learning_curve(lr, X, y, train_sizes =  np.linspace(0.1, 1, 10), cv = 10)
-# train_mean = np.mean(train_scores, axis = 1)
-# train_std = np.std(train_scores, axis = 1)
-# test_mean = np.mean(test_scores, axis = 1)
-# test_std = np.std(test_scores, axis = 1)
-
-# # plot
-# plt.plot(train_sizes, train_mean, color = yel, marker = 'o', label = 'Train')
-# plt.fill_between(train_sizes, train_mean + train_std, train_mean - train_std, alpha = 0.5, color = yel)
-
-# plt.plot(train_sizes, test_mean, color = prp, marker = 's', label = 'Test')
-# plt.fill_between(train_sizes, test_mean + test_std, test_mean - test_std, alpha = 0.5, color = prp)
-
-# plt.xlabel('Training Size')
-# plt.ylabel('Accuracy')
-
-# plt.legend()
-#endregion
-
 # get cross validated metrics
-metric_means(pl, X, y)
+metric_means(pl, X)
 
-mean_cvs = np.mean(cross_val_score(pl, X, y, cv = 10))
+# get cvs r2 and permutation importance
+mean_cvs = np.mean(cross_val_score(pl, X, y, cv = 10, scoring = 'r2'))
 
 print('----------------------------------------------')
-print('MEAN CROSS VAL SCORE: %0.5f' % mean_cvs)
+print('MEAN CROSS VAL SCORE R^2: %0.5f' % mean_cvs)
 print('----------------------------------------------')
+
+perm_imp(X,y)
+
 
 #region residuals
-
 # maybe do for different splits do see, but it is not meaningful to do a mean
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = rand)
 
-pl.fit(X_train, y_train)
+model = pl.fit(X_train, y_train)
 
 y_train_pred = pl.predict(X_train)
 y_test_pred = pl.predict(X_test)
@@ -195,6 +195,25 @@ plt.legend()
 # plt.savefig('./plots/lin_regress/resid.pdf')
 #endregion
 
+#region : learning curve
+# # learning curve
+# train_sizes, train_scores, test_scores = learning_curve(lr, X, y, train_sizes =  np.linspace(0.1, 1, 10), cv = 10)
+# train_mean = np.mean(train_scores, axis = 1)
+# train_std = np.std(train_scores, axis = 1)
+# test_mean = np.mean(test_scores, axis = 1)
+# test_std = np.std(test_scores, axis = 1)
 
+# # plot
+# plt.plot(train_sizes, train_mean, color = yel, marker = 'o', label = 'Train')
+# plt.fill_between(train_sizes, train_mean + train_std, train_mean - train_std, alpha = 0.5, color = yel)
+
+# plt.plot(train_sizes, test_mean, color = prp, marker = 's', label = 'Test')
+# plt.fill_between(train_sizes, test_mean + test_std, test_mean - test_std, alpha = 0.5, color = prp)
+
+# plt.xlabel('Training Size')
+# plt.ylabel('Accuracy')
+
+# plt.legend()
+#endregion
 
 # plt.show()
