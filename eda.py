@@ -13,6 +13,7 @@ import seaborn as sns
 from sklearn.impute import SimpleImputer
 from matplotlib import cm
 from matplotlib.colors import LinearSegmentedColormap
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 pd.set_option('display.max_columns', None)
 
@@ -94,6 +95,8 @@ classes = df['class']
 
 df.drop(labels = ['class'], axis = 1, inplace = True)
 
+print(df.columns)
+
 missing = iszero(df)
 n_missing = len(missing)
 # remove rows with missing data (in this case it's only colour data)
@@ -101,15 +104,23 @@ df.drop(missing, axis=0, inplace=True)
 # decided not to impute missing values because std is large
 # imp = SimpleImputer(missing_values = np.nan, strategy = 'mean')
 
-features = df.columns
-n_features = len(features)
+features = df[['o3', 'hb', 'ha', 'u_g', 'g_r', 'r_i', 'i_z']]
+n_features = len(features.columns)
+target = df['n2']
+
+vif = pd.DataFrame()
+vif['Feature'] = features.columns
+vif['VIF'] = [variance_inflation_factor(features.values, i) for i in range(len(features.columns))]
+
+v = open('vif.txt', 'w')
+v.write(vif.to_latex())
 
 # plot_args = {'s': 5, 'edgecolors': 'face', 'color' : blu, }
-pp, pp_axes = scatterplotmatrix(df.values, figsize = (20,20), names = features, alpha = 0.5, color = blu, s = 10, label = 'SFG') #sfg
+# pp, pp_axes = scatterplotmatrix(df.values, figsize = (20,20), names = features, alpha = 0.5, color = blu, s = 10, label = 'SFG') #sfg
 # pp, pp_axes = scatterplotmatrix(df.values, figsize = (20,20), names = features, alpha = 0.5, color = ong, s = 10, label = 'AGN') # agn
 # pp, pp_axes = scatterplotmatrix(df.values, figsize = (20,20), names = features, alpha = 0.5, color = grn, s = 10, label = 'COMP') # comp
 
-#region
+#region axis limits
 pp_axes[1,0].set_xlim(0, 3000)
 pp_axes[1,0].set_ylim(0, 1000)
 
@@ -206,4 +217,4 @@ hm = heatmap(corr_matrix, row_names = features, column_names = features, figsize
 df.insert(0, 'class', classes)
 
 t = Table.from_pandas(df)
-t.write('data_for_ML.fits')
+# t.write('data_for_ML.fits')
