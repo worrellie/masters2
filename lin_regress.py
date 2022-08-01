@@ -31,9 +31,9 @@ prp = '#8273B4' # test
 # random state (for consistency)
 rand = 4
 
-def reg_metrics(y, y_pred):
-    mse = mean_squared_error(y, y_pred)
-    r2 = r2_score(y, y_pred)
+def reg_metrics(y, y_pred, weight=1):
+    mse = mean_squared_error(y, y_pred)*weight
+    r2 = r2_score(y, y_pred)*weight
     adj = adj_r2(r2)
     return mse, r2, adj
 
@@ -42,7 +42,7 @@ def adj_r2(r2):
     return adj
 
 def metric_means(estimator, X, y):
-
+    
     ## kfold cv for r2 scores
     kf = KFold(n_splits = 10, random_state = rand, shuffle = True)
     # skf = StratifiedKFold(n_splits = 10)
@@ -61,21 +61,32 @@ def metric_means(estimator, X, y):
         y_train_pred = estimator.predict(X[train_index])
         y_test_pred = estimator.predict(X[test_index])
 
+        weight = len(X_train)
+        total_w = len(X)
+
         # performance metrics
-        mse_train, r2_train, adj_r2_train = reg_metrics(y_train, y_train_pred)
-        mse_test, r2_test, adj_r2_test = reg_metrics(y_test, y_test_pred)
+        means_train.append(reg_metrics(y_train, y_train_pred, weight))
+        means_test.append(reg_metrics(y_test, y_test_pred, weight))
 
-        means_train.append(reg_metrics(y_train, y_train_pred))
-        means_test.append(reg_metrics(y_test, y_test_pred))
+    # weighted mean metrics
+    mses_mean_train = np.mean(means_train, axis = 0)[0]/total_w
+    r2s_mean_train = np.mean(means_train, axis = 0)[1]/total_w
+    adj_r2s_mean_train = np.mean(means_train, axis = 0)[2]/total_w
 
-    # mean metrics- do a WEIGHTED mean
-    mses_mean_train = np.mean(means_train, axis = 0)[0]
-    r2s_mean_train = np.mean(means_train, axis = 0)[1]
-    adj_r2s_mean_train = np.mean(means_train, axis = 0)[2]
+    mses_mean_test = np.mean(means_test, axis = 0)[0]/total_w
+    r2s_mean_test = np.mean(means_test, axis = 0)[1]/total_w
+    adj_r2s_mean_test = np.mean(means_test, axis = 0)[2]/total_w
 
-    mses_mean_test = np.mean(means_test, axis = 0)[0]
-    r2s_mean_test = np.mean(means_test, axis = 0)[1]
-    adj_r2s_mean_test = np.mean(means_test, axis = 0)[2]
+    # print(len(means_train))
+    # print(len(X_train))
+
+    # mses_mean_train = np.average(means_train, axis = 0, weights = len(X_train))[0]
+    # r2s_mean_train = np.average(means_train, axis = 0)[1]
+    # adj_r2s_mean_train = np.average(means_train, axis = 0)[2]
+
+    # mses_mean_test = np.average(means_test, axis = 0)[0]
+    # r2s_mean_test = np.average(means_test, axis = 0)[1]
+    # adj_r2s_mean_test = np.average(means_test, axis = 0)[2]
 
     # print metrics
     print('----------------------------------------------')
@@ -111,12 +122,6 @@ target = df['n2']
 X = features.values
 y = target.values
 
-# maybe do for different splits do see, but it is not meaningful to do a mean
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = rand)
-
-# X_train = sc.fit_transform(X_train)
-# X_test = sc.transform(X_test)
-
 #region : learning curve
 # # learning curve
 # train_sizes, train_scores, test_scores = learning_curve(lr, X, y, train_sizes =  np.linspace(0.1, 1, 10), cv = 10)
@@ -138,14 +143,19 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = rand)
 # plt.legend()
 #endregion
 
+# get cross validated metrics
 metric_means(pl, X, y)
+
+#region residuals plots
+
+# maybe do for different splits do see, but it is not meaningful to do a mean
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = rand)
 
 pl.fit(X_train, y_train)
 
 y_train_pred = pl.predict(X_train)
 y_test_pred = pl.predict(X_test)
 
-#region residuals plots
 # with outliers
 plt.figure()
 plt.hlines(y = 0, xmin = -500, xmax = 8000, color = gry)
@@ -172,4 +182,4 @@ plt.legend()
 
 
 
-plt.show()
+# plt.show()
